@@ -1,0 +1,176 @@
+
+Création de la base de données : 
+
+$> sqlite3 computer.sqlite 
+( 🚨attention, la base de donnée ne doit pas être la même que le fichier fournis sinon erreur)
+
+$> .read computers_mysql.sql
+
+(*)
+
+$>.quit 
+(pour quitter l’interpréteur)
+
+
+Pour afficher “mieux” : 
+
+* après le .read (comme ça fait) → 
+.header on
+.mode column
+
+
+
+
+
+
+
+sqlite> SELECT nomcomp FROM composant WHERE (marque = 'Abit');
+
+
+nomcomp       	 
+-------------------
+Abit BH6 ATX  	 
+Abit BE6 ATX UDMA66
+
+
+
+
+sqlite> SELECT nompc FROM machine WHERE EXISTS (
+SELECT * FROM assemble WHERE EXISTS (
+SELECT * FROM composant WHERE (type='CD') 
+AND Assemble.refComp=Composant.refComp) 
+AND Machine.numpC=Assemble.numPc);
+
+
+nompc  	 
+------------
+Serveur Etud
+station 1   
+station 2   
+PC du chef 
+
+
+Avec where in : 
+
+sqlite> SELECT nompc FROM machine WHERE numpc IN (SELECT numpc FROM assemble WHERE refcomp IN ( SELECT refcomp FROM composant WHERE (type='CD')));
+
+
+Serveur Etud
+station 1
+station 2
+PC du chef
+
+
+
+
+sqlite> SELECT nompc, refcomp FROM machine, composant WHERE EXISTS (SELECT refcomp FROM assemble WHERE assemble.refcomp=Composant.refcomp AND machine.numpc=assemble.numpc);
+
+
+nompc     	refcomp    
+------------  -----------
+Serveur Etud  40X   	 
+Serveur Etud  BE6   	 
+Serveur Etud  DD9.1UW2   
+Serveur Etud  P3-500	 
+Serveur Etud  S3Trio	 
+Serveur Etud  SDRAM-128Mo
+Serveur Etud  teco15	 
+PC Admin  	C-500 	 
+PC Admin  	DD6.4 	 
+PC Admin  	P5A   	 
+PC Admin  	SDRAM-64Mo
+PC Admin  	i740  	 
+PC Admin  	teco17	 
+station 1 	50X   	 
+station 1 	BH6   	 
+station 1 	DD6.4 	 
+station 1 	Fury32	 
+station 1 	P3-600	 
+station 1 	S703HT	 
+station 1 	SB16  	 
+station 1 	SDRAM-128Mo
+station 2 	50X   	 
+station 2 	BH6   	 
+station 2 	DD6.4 	 
+station 2 	Fury32	 
+station 2 	P3-600	 
+station 2 	S703HT	 
+station 2 	SB16  	 
+station 2 	SDRAM-128Mo
+PC du chef	40XS  	 
+PC du chef	A702HT	 
+PC du chef	DD9.1UW2   
+PC du chef	G400-32max
+PC du chef	K7-800	 
+PC du chef	SBLive	 
+PC du chef	SD11  	 
+PC du chef	SDRAM-64Mo
+PC codeur 	C-433 	 
+PC codeur 	DD4.3 	 
+PC codeur 	EDO-16Mo   
+PC codeur 	MS6260S    
+PC codeur 	S3Trio	 
+PC codeur 	teco15	 
+
+
+
+
+
+sqlite> SELECT nompc FROM machine WHERE EXISTS (SELECT numpc FROM assemble WHERE EXISTS (SELECT DISTINCT refcomp FROM cartevideo WHERE ramvideo>=8 AND cartevideo.refcomp=assemble.refcomp AND machine.numpc=assemble.numPC));
+
+nompc	 
+----------
+PC Admin  
+station 1
+station 2
+PC du chef
+
+
+
+
+
+sqlite> SELECT nompc FROM machine WHERE EXISTS (SELECT numpc FROM assemble WHERE EXISTS (SELECT DISTINCT refcomp FROM processeur WHERE TroisDNow='oui' AND assemble.refcomp=processeur.refcomp AND machine.numpc=assemble.numpc));
+
+
+nompc	 
+----------
+PC du chef
+
+
+
+
+sqlite> SELECT nomcomp FROM composant WHERE EXISTS (SELECT refcomp FROM assemble WHERE EXISTS(SELECT numpc FROM machine WHERE salle='atelier' AND machine.numpc=assemble.numpc AND composant.refcomp=assemble.refcomp));
+
+
+nomcomp            	 
+------------------------
+Asus P5A ATX       	 
+Abit BE6 ATX UDMA66	 
+Pentium III - 500MHz    
+Celeron 500MHz     	 
+SDRAM 64Mo PC100   	 
+SDRAM 128Mo PC100  	 
+Intel 740 8Mo AGP  	 
+S3 Trio 128 bits 4Mo AGP
+CD-ROM 40X IDE     	 
+6,4Go Seagate UDMA33/66
+9,1Go IBM UW2 10000trs  
+15" teco pitch 0.28	 
+17" teco pitch 0.28  
+
+
+
+
+
+sqlite> SELECT DINSTINCT salle FROM machine WHERE EXISTS (
+SELECT numpc FROM assemble WHERE EXISTS (
+SELECT refcomp FROM composant WHERE type='Son' 
+AND assemble.refcomp=composant.refcomp 
+AND machine.numpc=assemble.numpc));
+
+salle   
+--------
+showroom
+showroom
+bureau
+
