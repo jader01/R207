@@ -1,0 +1,186 @@
+
+1 Premiers pas avec SQL 
+1. Requêtes simples : 
+(a) noms des fournisseurs situés à Paris 
+SELECT nomfour FROM fournisseur WHERE (ville='Paris');
+
+(b) numéros des produits provenant de Paris et dont le poids est supérieur ou égal à 0.3 
+SELECT numprod FROM produit WHERE (origine='Paris' and poids>=0.3);
+(c) idem précédent, mais triés par poids décroissant 
+SELECT numprod 
+FROM produit 
+WHERE (origine='Paris' and poids>=0.3) 
+ORDER BY poids DESC;
+
+(d) correspondance entre les numéros de fournisseurs et les numéros de produits de la même ville
+SELECT numprod,numfour FROM produit, fournisseur WHERE (fournisseur.ville=produit.origine); 
+(e) correspondance entre les numéros de produits de la même ville 
+SELECT numfour,numprod FROM produit, fournisseur WHERE (fournisseur.ville=produit.origine);
+
+
+(f) noms des produits dont le numéro est p1, p2, p3 ou p4 
+sqlite> SELECT nomprod FROM produit WHERE 
+(numprod = 'p1' OR numprod = 'p2' OR numprod ='p3' OR numprod = 'p4');
+
+
+______________________________________________
+nomprod	 
+------------
+veste  	 
+pantalon    
+chemise	 
+veste longue
+
+Autre solution : 
+
+sqlite> SELECT nomprod FROM produit WHERE numprod IN ('p1', 'p2', 'p3', 'p4');
+nomprod	 
+------------
+veste  	 
+pantalon    
+chemise	 
+veste longue
+
+
+2. Sous-requêtes : 
+(a) noms des fournisseurs ayant livré des produits de couleur rouge 
+sqlite> SELECT nomfour FROM fournisseur WHERE EXISTS (
+SELECT numfour FROM stock WHERE EXISTS (
+SELECT numprod FROM produit WHERE (couleur = 'rouge')
+AND stock.numprod=produit.numprod)   
+AND fournisseur.numfour=Stock.numfour);
+
+___________________________________________________________
+nomfour
+--------
+Dupont  
+Courvite
+
+Avec un where in : 
+sqlite> SELECT nomfour FROM fournisseur WHERE numfour IN (SELECT numfour FROM stock WHERE numprod IN (SELECT numprod FROM produit WHERE (couleur = 'rouge')));
+nomfour
+--------
+Dupont  
+Courvite
+
+
+
+(b) noms des fournisseurs ayant livré le produit p2 
+sqlite> SELECT nomfour FROM fournisseur WHERE EXISTS (
+SELECT numfour FROM stock WHERE (numprod = 'p2' 
+AND stock.numfour=fournisseur.numfour));
+
+___________________________________________________
+nomfour
+--------
+Dupont  
+Courvite
+Frip64  
+Alpages
+
+Avec where in : 
+
+SELECT nomfour FROM fournisseur WHERE numfour in (SELECT numfour FROM stock WHERE (numprod = 'p2'));
+______________________________________________________________________
+nomfour
+--------
+Dupont  
+Courvite
+Frip64  
+Alpages
+
+
+
+
+(c) numéros des fournisseurs ayant livré au moins un article identique à ceux livrés par f2 
+SELECT DISTINCT numfour FROM stock S1  WHERE EXISTS (
+SELECT * FROM stock S2 WHERE (numfour = 'f2') 
+and S1.numprod=S2.numprod) 
+AND numfour!='f2';
+______________________________________________
+numfour
+-------
+f1	 
+f3	 
+f4	 
+
+
+(d) numéros des produits originaires de la même ville que p1
+sqlite> SELECT numprod FROM produit WHERE origine IN (SELECT origine FROM produit WHERE (numprod = 'p1'));
+______________________________________________________________
+numprod
+-------
+p1     
+p6     
+p7
+
+
+
+3. "Exists" et "not exists" : 
+(a) noms des fournisseurs ayant livré le produit p2 
+SELECT nomfour FROM fournisseur WHERE EXISTS (SELECT numfour FROM stock WHERE (numprod = 'p2' and stock.numfour=fournisseur.numfour));
+
+
+nomfour
+--------
+Dupont  
+Courvite
+Frip64  
+Alpages
+
+
+(b) noms des fournisseurs n'ayant pas livré le produit p2 
+SELECT nomfour FROM fournisseur WHERE NOT EXISTS(SELECT numfour FROM stock WHERE (numprod = 'p2' and stock.numfour=fournisseur.numfour));
+nomfour  
+---------
+Stanislas
+
+
+
+(c) noms des fournisseurs tels qu'il n'y ait pas de produit qu'ils n'aient pas livré (. . .) 
+(avoir le fournisseur qui a tous livrer)
+sqlite> SELECT nomfour FROM fournisseur F WHERE NOT EXISTS (
+SELECT * FROM produit P WHERE NOT EXISTS (
+SELECT * FROM stock S WHERE 
+(S.numfour=F.numfour) 
+AND (S.numprod = P.nomprod)));
+
+
+
+4. "Group by" et "having" : 
+(a) total des quantités livrées pour chaque produit 
+sqlite> SELECT numprod, sum(qte) FROM stock WHERE qte GROUP BY numprod;
+
+___________________________________________________________________________
+numprod  sum(qte)
+-------  --------
+p1   	800	 
+p2   	1000    
+p3   	400	 
+p4   	500	 
+p5   	500	 
+p6   	150	 
+p7   	250	
+
+(b) idem précédent, mais p1 non pris en compte 
+sqlite> SELECT numprod, sum(qte) FROM stock where qte GROUP BY numprod HAVING (numprod != 'p1');
+______________________________________________________
+numprod  sum(qte)
+-------  --------
+p2   	1000    
+p3   	400	 
+p4   	500	 
+p5   	500	 
+p6   	150	 
+p7   	250  
+
+(c) numéros des fournisseurs ayant livré au moins deux produits 
+sqlite> SELECT numfour FROM stock GROUP BY numfour HAVING count(numprod)>2;
+_________________________________________________________
+numfour
+-------
+f1	 
+f2	 
+f4 
+
+
