@@ -1,5 +1,14 @@
+##################################################################################
+#                                    import librairie
+################################################################################
+
 import sqlite3 as sql
 import json
+
+####################################################################################
+#                            création connexion basse de donée +
+#                            associser a variable résultat requête
+##############################################################################
 
 con = sql.connect("computer.sqlite") #lien vers la vse de doné
 cur = con.cursor()
@@ -9,8 +18,17 @@ cur.execute("SELECT nompc, refcomp FROM machine, composant WHERE EXISTS (SELECT 
 res = cur.fetchall()
 
 
+##########################################################################################
+#                         récupération donner pour génération html après
+###########################################################################################
+
 # Obtenir les noms des colonnes
 column_names = [description[0] for description in cur.description] #pour recup le nom des colones 
+
+
+##########################################################################################
+#                                   génération code html
+########################################################################################
 
 print("<!Doctype html>") #debut du code html
 
