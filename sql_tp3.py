@@ -4,7 +4,7 @@ import json
 con = sql.connect("computer.sqlite") #lien vers la vse de doné
 cur = con.cursor()
 
-cur.execute("SELECT nompc FROM machine WHERE EXISTS (SELECT numpc FROM assemble WHERE EXISTS (SELECT DISTINCT refcomp FROM cartevideo WHERE ramvideo>=8 AND cartevideo.refcomp=assemble.refcomp AND machine.numpc=assemble.numPC))")
+cur.execute("SELECT nompc, refcomp FROM machine, composant WHERE EXISTS (SELECT refcomp FROM assemble WHERE assemble.refcomp=Composant.refcomp AND machine.numpc=assemble.numpc)")
 #au dessus ^ la req sql a excuter
 res = cur.fetchall()
 
@@ -17,11 +17,14 @@ print("<!Doctype html>") #debut du code html
 print("<html>")
 print("<head>")
 
+print("<title> sql en python </title>")
+
 print("<style>table{border-collapse:collapse;}td{text-align:center;border:1px solid black;}th{text-align:center;border:1px solid black;}</style>")
 # ^ tout le style du tableau
 
 print("</head>")
 
+print("<body>")
 print("<center>") #pour centrer le tableau
 print("<table>") #creation tableau
 
@@ -38,11 +41,12 @@ for row in res: #pour tout paramètre dans le résultat de la requete
         if column is None: #si pas de colone on met un - 
             print("<td>-</td>")
         else:
-            print('<td>' + str(column) + "</td> </font>") #sinon 
+            print('<td>' + str(column) + "</td> </font>") #sinon on print l'intérieur de la collone
     print("</tr>")
 
 print("</table>")
 print("</center>")
+print("</body>")
 print("</html>")
 
 con.close()
