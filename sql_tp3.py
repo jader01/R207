@@ -10,7 +10,7 @@ import json
 #                            associser a variable résultat requête
 ##############################################################################
 
-con = sql.connect("computer.sqlite") #lien vers la vse de doné
+con = sql.connect("computer.sqlite") #lien vers la bdd
 cur = con.cursor()
 
 cur.execute("SELECT nompc, refcomp FROM machine, composant WHERE EXISTS (SELECT refcomp FROM assemble WHERE assemble.refcomp=Composant.refcomp AND machine.numpc=assemble.numpc)")
@@ -48,7 +48,7 @@ print("<table>") #creation tableau
 
 # Générer automatiquement les balises th en fonction des noms de colonnes
 print("<tr>") #titre en haut du tableau en gras (nom de colonne)
-for col_name in column_names: #proute toutes les colones
+for col_name in column_names: #printe toutes les colones
     #print("")
     print("<th>", col_name, "</th>") #on affiche le nom des collones 
 print("</tr>")
